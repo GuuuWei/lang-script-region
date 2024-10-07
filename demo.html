@@ -8,6 +8,13 @@
     <script type="text/javascript">
       var font;
       var uncd = null;
+      var result = {
+        info: {},
+        copyright: {},
+        variable: {},
+        features: {},
+        support: {},
+      };
 
       async function load(path) {
         try {
@@ -45,8 +52,8 @@
       }
 
       function calculateCoverage(intervals, arr) {
-        let coveredCount = 0; // 记录覆盖的元素数
-        let intervalIndex = 0; // 当前区间A的索引
+        let coveredCount = 0;
+        let intervalIndex = 0;
         let intervalsLength = 0;
 
         for (const iterator of intervals) {
@@ -60,7 +67,7 @@
             intervalIndex < intervals.length &&
             num > intervals[intervalIndex].slice(-1)
           ) {
-            intervalIndex++; // 移动到下一个区间
+            intervalIndex++;
           }
           // 检查当前数字是否在当前区间内
           if (
@@ -68,7 +75,7 @@
             num >= intervals[intervalIndex][0] &&
             num <= intervals[intervalIndex].slice(-1)
           ) {
-            coveredCount++; // 增加覆盖计数
+            coveredCount++;
           }
         }
 
@@ -76,14 +83,29 @@
       }
 
       function fontLoaded(resp) {
+        const start = new Date().getTime();
         font = Typr.parse(resp)[0];
         console.log(font);
         document.title = font.name.fullName;
-        document.getElementById("result").innerHTML = `${font.name.fullName}`;
+        document.getElementById(
+          "report"
+        ).innerHTML = `${font.name.fullName}</br>`;
+
+        result["info"]["fullName"] = font.name.fullName;
+        result["info"]["fontFamily"] = font.name.fontFamily;
+        result["info"]["version"] = font.name.version;
+        result["info"]["manufacturer"] = font.name.manufacturer;
+        result["info"]["designer"] = font.name.designer;
+        result["copyright"]["copyright"] = font.name.copyright;
+        result["copyright"]["licence"] = font.name.licence;
+        result["copyright"]["URL"] = font.name.licenceURL;
 
         var glyphCounts = font.maxp.numGlyphs;
+        result["info"]["glyphs"] = glyphCounts;
+
         uncd = new Set();
-        // Unicode 的最大码点是 0x10FFFF
+        // 遍历所有 Unicode 码点，直到找到所有字形
+        // TODO 遍历次数太多，效率太低
         for (let i = 0, j = 0; i <= 0x10ffff && j < glyphCounts; i++) {
           let gid = Typr.U.codeToGlyph(font, i);
           if (gid === 0) continue;
@@ -91,13 +113,18 @@
           j++;
         }
 
+        result["info"]["characters"] = uncd.size;
+
         processJsonFiles();
 
         drawWord();
+        console.log(result);
+
+        const end = new Date().getTime();
+        console.log(`Processing time:`, `${end - start}ms`);
       }
 
       function processJsonFiles() {
-        const start = new Date().getTime();
         const jsonFolder = "./data/";
 
         fetch(jsonFolder)
@@ -109,24 +136,16 @@
               .filter((a) => a.href.endsWith(".json"))
               .map((a) => a.href);
 
-            return Promise.all(
-              fileLinks.map((file) => processJsonFile(file, start))
-            );
+            return Promise.all(fileLinks.map((file) => processJsonFile(file)));
           })
           .catch((error) => console.error("Error listing JSON files:", error));
       }
 
-      function processJsonFile(file, start) {
+      function processJsonFile(file) {
         return fetch(file)
           .then((response) => response.json())
           .then((data) => {
-            console.log(data.id);
-            document.getElementById(
-              "result"
-            ).innerHTML += `<br/><br/>${data.id}`;
-            document.getElementById(
-              "result"
-            ).innerHTML += `<br/>${data.autonym}`;
+            result["support"][data.id] = {};
 
             const categories = [
               "base",
@@ -136,21 +155,30 @@
               "punctuation",
             ];
 
+            let allCoverage = [0, 0];
             categories.forEach((category) => {
               if (data.exemplar_chars[category]) {
                 const coverage = calculateCoverage(
                   data.exemplar_chars[category],
                   uncd
                 );
-                console.log(`${category} coverage:`, coverage);
-                document.getElementById(
-                  "result"
-                ).innerHTML += `<br/>${category} : ${coverage[0]} / ${coverage[1]}`;
+
+                result["support"][data.id][category] = [
+                  coverage[0],
+                  coverage[1],
+                ];
+
+                allCoverage[0] += coverage[0];
+                allCoverage[1] += coverage[1];
               }
             });
 
-            const end = new Date().getTime();
-            console.log(`Processing time:`, `${end - start}ms`);
+            result["support"][data.id]["all"] = allCoverage;
+            document.getElementById("report").innerHTML += `<br/>${
+              data.autonym
+            } - ${((100 * allCoverage[0]) / allCoverage[1]).toFixed(2)} - ${
+              allCoverage[0]
+            } / ${allCoverage[1]} `;
           })
           .catch((error) => console.error(`Error processing ${file}:`, error));
       }
@@ -225,7 +253,7 @@
         oninput="drawWord()"
       />
       <canvas id="wordcanvas"></canvas>
-      <div id="result"></div>
+      <div id="report"></div>
     </div>
   </body>
 </html>
