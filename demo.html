@@ -3,28 +3,26 @@
   <head>
     <meta charset="utf-8" />
     <title>...</title>
-    <!-- <script type="module" src="./lib-font-demo.js" async></script> -->
     <script type="text/javascript" src="./Typr.js"></script>
     <script type="text/javascript" src="./Typr.U.js"></script>
     <script type="text/javascript">
       var font;
-      var off = 0,
-        num = 100;
-      var gid = 0;
       var uncd = null;
 
-      function load(path, resp) {
-        var request = new XMLHttpRequest();
-        request.open("GET", path, true);
-        request.responseType = "arraybuffer";
-        request.onload = function (e) {
-          resp(e.target.response);
-        };
-        request.send();
+      async function load(path) {
+        try {
+          const response = await fetch(path);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return await response.arrayBuffer();
+        } catch (error) {
+          console.error("加载文件时出错:", error);
+        }
       }
 
       function go() {
-        load("NotoSansSC-VF.ttf", fontLoaded);
+        load("NotoSansSC-VF.ttf").then(fontLoaded);
 
         var node = document.body;
         node.addEventListener("drop", onDrop, false);
@@ -46,146 +44,117 @@
         r.readAsArrayBuffer(e.dataTransfer.files[0]);
       }
 
-      function glyphCnt() {
-        return font.maxp.numGlyphs;
+      function calculateCoverage(intervals, arr) {
+        let coveredCount = 0; // 记录覆盖的元素数
+        let intervalIndex = 0; // 当前区间A的索引
+        let intervalsLength = 0;
+
+        for (const iterator of intervals) {
+          // 计算每个区间的长度
+          intervalsLength += iterator[iterator.length - 1] - iterator[0] + 1;
+        }
+
+        for (const num of arr) {
+          // 当区间未遍历完并且当前数字在当前区间内
+          while (
+            intervalIndex < intervals.length &&
+            num > intervals[intervalIndex].slice(-1)
+          ) {
+            intervalIndex++; // 移动到下一个区间
+          }
+          // 检查当前数字是否在当前区间内
+          if (
+            intervalIndex < intervals.length &&
+            num >= intervals[intervalIndex][0] &&
+            num <= intervals[intervalIndex].slice(-1)
+          ) {
+            coveredCount++; // 增加覆盖计数
+          }
+        }
+
+        return [coveredCount, intervalsLength];
       }
 
       function fontLoaded(resp) {
         font = Typr.parse(resp)[0];
         console.log(font);
+        document.title = font.name.fullName;
+        document.getElementById("result").innerHTML = `${font.name.fullName}`;
 
-        uncd = new Array(glyphCnt());
-        for (var i = 0; i < 130000; i++) {
-          var gid = Typr.U.codeToGlyph(font, i);
-          if (gid == 0) continue;
-          if (uncd[gid] == null) uncd[gid] = [i];
-          else uncd[gid].push(i);
+        var glyphCounts = font.maxp.numGlyphs;
+        uncd = new Set();
+        // Unicode 的最大码点是 0x10FFFF
+        for (let i = 0, j = 0; i <= 0x10ffff && j < glyphCounts; i++) {
+          let gid = Typr.U.codeToGlyph(font, i);
+          if (gid === 0) continue;
+          uncd.add(i);
+          j++;
         }
 
-        off = 0;
-        gid = 0;
-        gid = Typr.U.codeToGlyph(font, 131428);
-        console.log(gid);
-        path = Typr.U.glyphToPath(font, gid)
-        console.log(path);
-        svg = Typr.U.pathToSVG(path)
-        console.log('<path d="'+svg+'"/>');
+        processJsonFiles();
 
-        
-        // shape = Typr.U.shape(font, "丁", true)
-        // console.log(shape);
-        // path = Typr.U.shapeToPath(font, shape)
-        // console.log(path);
-        // svg = Typr.U.pathToSVG(path)
-        // console.log('<path d="'+svg+'"/>');
-
-        drawGlyphs();
-        drawGlyph();
         drawWord();
       }
 
-      function drawGlyphs() {
-        var cont = document.getElementById("glyphcont");
-        cont.innerHTML = "";
-        var cnv = document.createElement("canvas");
-        cnv.width = Math.floor(getDPR() * 40);
-        cnv.height = Math.floor(getDPR() * 60); //scaleCnv(cnv);
-        var ctx = cnv.getContext("2d");
-        ctx.font = "20px sans";
+      function processJsonFiles() {
+        const start = new Date().getTime();
+        const jsonFolder = "./data/";
 
-        var lim = Math.min(off + num, glyphCnt());
-        //console.log(off, lim); throw "e";
-        var scale = (32 * getDPR()) / font.head.unitsPerEm;
-        for (var i = off; i < lim; i++) {
-          var path = Typr.U.glyphToPath(font, i);
+        fetch(jsonFolder)
+          .then((response) => response.text())
+          .then((text) => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(text, "text/html");
+            const fileLinks = Array.from(htmlDoc.querySelectorAll("a"))
+              .filter((a) => a.href.endsWith(".json"))
+              .map((a) => a.href);
 
-          cnv.width = cnv.width;
-          //ctx.scale(getDPR(), getDPR());
-          ctx.translate(10 * getDPR(), Math.round(36 * getDPR()));
-
-          ctx.fillStyle = "#ff0000";
-          ctx.fillRect(0, 0, cnv.width, 1);
-
-          ctx.fillStyle = "#333333";
-          ctx.fillText(i, 0, 20);
-
-          ctx.scale(scale, -scale);
-          Typr.U.pathToContext(path, ctx);
-          ctx.fill();
-
-          var img = document.createElement("img");
-          img.setAttribute(
-            "style",
-            "width:" +
-              cnv.width / getDPR() +
-              "px; height:" +
-              cnv.height / getDPR() +
-              "px"
-          );
-          img.gid = i;
-          img.onclick = glyphClick;
-          img.src = cnv.toDataURL();
-          cont.appendChild(img);
-        }
+            return Promise.all(
+              fileLinks.map((file) => processJsonFile(file, start))
+            );
+          })
+          .catch((error) => console.error("Error listing JSON files:", error));
       }
 
-      function drawGlyph() {
-        var cnv = document.getElementById("maincanvas");
-        cnv.width = Math.floor(getDPR() * 400);
-        cnv.height = Math.floor(getDPR() * 400);
-        scaleCnv(cnv);
-        var ctx = cnv.getContext("2d");
-        ctx.font = "20px sans";
+      function processJsonFile(file, start) {
+        return fetch(file)
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data.id);
+            document.getElementById(
+              "result"
+            ).innerHTML += `<br/><br/>${data.id}`;
+            document.getElementById(
+              "result"
+            ).innerHTML += `<br/>${data.autonym}`;
 
-        var scale = (340 * getDPR()) / font.head.unitsPerEm;
+            const categories = [
+              "base",
+              "auxiliary",
+              "strict",
+              "numerals",
+              "punctuation",
+            ];
 
-        var path = Typr.U.glyphToPath(font, gid);
+            categories.forEach((category) => {
+              if (data.exemplar_chars[category]) {
+                const coverage = calculateCoverage(
+                  data.exemplar_chars[category],
+                  uncd
+                );
+                console.log(`${category} coverage:`, coverage);
+                document.getElementById(
+                  "result"
+                ).innerHTML += `<br/>${category} : ${coverage[0]} / ${coverage[1]}`;
+              }
+            });
 
-        cnv.width = cnv.width;
-        ctx.translate(50 * getDPR(), 320 * getDPR());
-
-        ctx.fillStyle = "#ff0000";
-        ctx.fillRect(0, 0, cnv.width, 1);
-        ctx.fillRect(0, -Math.round(font.hhea.ascender * scale), cnv.width, 1);
-        ctx.fillRect(0, -Math.round(font.hhea.descender * scale), cnv.width, 1);
-
-        ctx.scale(scale, -scale);
-
-        ctx.lineWidth = 5 / scale;
-        ctx.strokeStyle = "#003377";
-        ctx.fillStyle = "#999999";
-        Typr.U.pathToContext(path, ctx);
-        ctx.fill();
-        ctx.stroke();
-
-        drawOutline(path, ctx);
-
-        var props = document.getElementById("properties");
-
-        var hex = "---",
-          str = "---";
-        var ucode = uncd[gid];
-        if (ucode != null) {
-          hex = ucode[0].toString(16);
-          while (hex.length < 4) hex = "0" + hex;
-          str = String.fromCodePoint(ucode[0]);
-        }
-
-        props.innerHTML =
-          "Unicode: #" +
-          hex +
-          ' <span style="font-size:2em; margin-left:1em;"> ' +
-          str +
-          "</span>";
-
-        var tarea = document.getElementById("textarea");
-        tarea.innerHTML =
-          '{\n"cmds" : \n' +
-          JSON.stringify(path.cmds) +
-          ',\n\n"crds" : \n' +
-          JSON.stringify(path.crds) +
-          "\n}";
+            const end = new Date().getTime();
+            console.log(`Processing time:`, `${end - start}ms`);
+          })
+          .catch((error) => console.error(`Error processing ${file}:`, error));
       }
+
       function drawWord(e) {
         var cnv = document.getElementById("wordcanvas");
         cnv.width = Math.floor(800 * getDPR());
@@ -214,37 +183,6 @@
         ctx.fill();
       }
 
-      function drawOutline(path, ctx) {
-        var ci = 0,
-          x = 0,
-          y = 0;
-        var crds = path.crds;
-        var w = 0.0025 * font.head.unitsPerEm;
-
-        ctx.lineWidth = w;
-        ctx.strokeStyle = "#00ffff";
-        Typr.U.pathToContext(path, ctx);
-
-        ctx.stroke();
-
-        var ss = w * 4;
-        ctx.fillStyle = "#ff0055";
-        for (var i = 0; i < crds.length; i += 2)
-          ctx.fillRect(crds[i] - ss, crds[i + 1] - ss, 2 * ss, 2 * ss);
-      }
-
-      function drawPrev() {
-        if (off > 0) off = off - num;
-        drawGlyphs();
-      }
-      function drawNext() {
-        if (off + num < glyphCnt()) off = off + num;
-        drawGlyphs();
-      }
-      function glyphClick(e) {
-        gid = e.target.gid;
-        drawGlyph();
-      }
       function getDPR() {
         return window["devicePixelRatio"] || 1;
       }
@@ -259,78 +197,35 @@
         );
       }
     </script>
-		<style type="text/css">
-			body {
-				font-family:sans-serif;
-				background-color: #ceedf4;
-				margin:0;
-				padding:0;
-				line-height:1.6em;
-				color: rgb(51, 51, 51);
-			}
-			pre{
-				background-color: rgba(0,0,0,0.04);
-				padding:1em;
-				font-size:1.2em;
-				tab-size: 4;
-			}
-			code {
-				background-color: rgba(0, 0, 0, 0.04);
-				font-size:1.2em;
-				padding: 0.1em 0.2em;
-			}
-			h1 {
-				font-size: 3em;
-				margin: 0;
-				padding: 0.7em;
-				color:#ffffff;
-				text-align:center;
-				background-image: linear-gradient(rgb(84, 180, 235), rgb(47, 164, 231));
-			}
-			h2 { 
-				font-size: 1.8em;
-				margin-top:1.5em; 
-				margin-bottom: 1em;
-				padding-bottom: 0.4em;
-				border-bottom-color: rgb(238, 238, 238);
-				border-bottom-style: solid;
-				border-bottom-width: 1px;
-			}
-			h3 { margin-top:1.0em; margin-bottom: 0.5em;}  
-			p  { margin: 0 0 1em 0;}
-			.main {
-				margin:0 auto;
-				max-width: 50em;
-				
-				padding:0.5em 2em;
-				background-color: #ffffff;
-			}
-		</style>
+    <style type="text/css">
+      body {
+        background-color: #ceedf4;
+        margin: 0;
+        padding: 0;
+        line-height: 1.6em;
+        color: rgb(51, 51, 51);
+      }
+      .main {
+        margin: 0 auto;
+        max-width: 50em;
 
+        padding: 0.5em 2em;
+        background-color: #ffffff;
+      }
+    </style>
   </head>
 
   <body onload="go();">
-
-    <h1>Typr.js demo</h1>
-      
-  <div class="main">
-    <button type="button" onclick="drawPrev()">Previous 100</button>  <button type="button" onclick="drawNext()">Next 100</button>
-    <b style="float:right">Drag and drop your own font!</b>
-    <div id="glyphcont"></div>
-    
-    
-    <div style="margin-top:1em">
-      <canvas id="maincanvas" style="float:left"></canvas>
-      <div style="float:left">
-        <div id="properties"></div>
-        <textarea id="textarea" style="width:380px;height:350px"> Path code </textarea>
-      </div>
+    <div class="main">
+      <input
+        id="word"
+        type="text"
+        value="测试 Test"
+        style="font-size: 1.5em; width: 100%; margin-top: 1em"
+        oninput="drawWord()"
+      />
+      <canvas id="wordcanvas"></canvas>
+      <div id="result"></div>
     </div>
-    
-    
-    <input id="word" type="text" value="Photopea" style="font-size:1.5em; width:100%; margin-top:1em;" oninput="drawWord()"></input>
-    <canvas id="wordcanvas"></canvas>
-    
-  </div>
   </body>
 </html>
