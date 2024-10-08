@@ -3,11 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <title>...</title>
-    <script type="text/javascript" src="./src/Typr.js"></script>
-    <script type="text/javascript" src="./src/Typr.U.js"></script>
+    <script type="text/javascript" src="./lib/Typr.js"></script>
+    <script type="text/javascript" src="./lib/Typr.U.js"></script>
+    <script type="module" src="./lib/lib-font.browser.js"></script>
+    <script type="text/javascript" src="./lib/inflate.js"></script>
+    <script type="text/javascript" src="./lib/unbrotli.js"></script>
     <script type="text/javascript">
       var font;
       var uncd = null;
+      // var uncd2 = null;
       var result = {
         info: {},
         copyright: {},
@@ -28,8 +32,60 @@
         }
       }
 
+      // function checkFont(evt) {
+      //   const start = new Date().getTime();
+
+      //   const f = evt.detail.font;
+      //   console.log(f);
+      //   // document.title = f.opentype.tables.name.fullName;
+      //   // document.getElementById(
+      //   //   "report"
+      //   // ).innerHTML = `${font.name.fullName}</br>`;
+
+      //   // result["info"]["fullName"] = font.name.fullName;
+      //   // result["info"]["fontFamily"] = font.name.fontFamily;
+      //   // result["info"]["version"] = font.name.version;
+      //   // result["info"]["manufacturer"] = font.name.manufacturer;
+      //   // result["info"]["designer"] = font.name.designer;
+      //   // result["copyright"]["copyright"] = font.name.copyright;
+      //   // result["copyright"]["licence"] = font.name.licence;
+      //   // result["copyright"]["URL"] = font.name.licenceURL;
+
+      //   var glyphCounts = f.opentype.tables.maxp.numGlyphs;
+      //   // result["info"]["glyphs"] = glyphCounts;
+
+      //   uncd2 = new Set();
+      //   // // 遍历所有 Unicode 码点，直到找到所有字形
+      //   // // TODO 遍历次数太多，效率太低
+      //   for (let i = 32, j = 0; i <= 0x10ffff && j < glyphCounts; i++) {
+      //     // TODO lib-font 不支持65535以上的unicode码点
+      //     let gid = f.getGlyphId(String.fromCodePoint(i));
+      //     if (gid === 0) continue;
+      //     // 检测是否存在空字形占位置，性能很差，特别是otf格式，暂时不开启
+      //     // if (Typr.U.glyphToPath(font, gid).cmds.length === 0) continue;
+      //     uncd2.add(i);
+      //     j++;
+      //   }
+
+      //   // result["info"]["characters"] = uncd.size;
+
+      //   processJsonFiles();
+
+      //   // drawWord();
+      //   console.log(result);
+
+      //   const end = new Date().getTime();
+      //   console.log(`Processing time:`, `${end - start}ms`);
+      // }
+
       function go() {
-        load("NotoSansSC-VF.ttf").then(fontLoaded);
+        var src = "NotoSansSC-VF.ttf";
+        load(src).then(fontLoaded);
+
+        // const f = new Font(`Lib-font-test`);
+        // f.onerror = (evt) => console.error(evt);
+        // f.onload = (evt) => checkFont(evt);
+        // f.src = src;
 
         var node = document.body;
         node.addEventListener("drop", onDrop, false);
@@ -106,9 +162,11 @@
         uncd = new Set();
         // 遍历所有 Unicode 码点，直到找到所有字形
         // TODO 遍历次数太多，效率太低
-        for (let i = 0, j = 0; i <= 0x10ffff && j < glyphCounts; i++) {
+        for (let i = 32, j = 0; i <= 0x10ffff && j < glyphCounts; i++) {
           let gid = Typr.U.codeToGlyph(font, i);
           if (gid === 0) continue;
+          // 检测是否存在空字形占位置，性能很差，特别是otf格式，暂时不开启
+          // if (Typr.U.glyphToPath(font, gid).cmds.length === 0) continue;
           uncd.add(i);
           j++;
         }
@@ -122,6 +180,22 @@
 
         const end = new Date().getTime();
         console.log(`Processing time:`, `${end - start}ms`);
+
+        // RTL 语言处理
+        // Typr.U.initHB('./src/hb.wasm', function() {
+        //     console.log('HarfBuzz 已加载');
+
+        //     const text = "示例文本";
+
+        //     // 使用 HarfBuzz 进行高级文本排版
+        //     const shaped = Typr.U.shapeHB(font, text);
+
+        //     // 将排版结果转换为路径
+        //     const path = Typr.U.shapeToPath(font, shaped);
+        //     console.log(path);
+
+        //     // 你可以在这里进一步处理路径，例如绘制到画布上
+        // });
       }
 
       function processJsonFiles() {
@@ -151,7 +225,13 @@
               exemplar: {},
             };
 
-            const categories = ["base", "auxiliary", "numerals", "punctuation"];
+            const categories = [
+              "base",
+              "auxiliary",
+              "marks",
+              "numerals",
+              "punctuation",
+            ];
 
             let exemplarCovered = 0;
             let exemplarCharset = 0;
