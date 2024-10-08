@@ -51,35 +51,35 @@
         r.readAsArrayBuffer(e.dataTransfer.files[0]);
       }
 
-      function calculateCoverage(intervals, arr) {
-        let coveredCount = 0;
-        let intervalIndex = 0;
-        let intervalsLength = 0;
+      function calculateCoverage(charset, chars) {
+        let covered = 0;
+        let charsetIndex = 0;
+        let charsetLength = 0;
 
-        for (const iterator of intervals) {
+        for (const range of charset) {
           // 计算每个区间的长度
-          intervalsLength += iterator[iterator.length - 1] - iterator[0] + 1;
+          charsetLength += range.slice(-1) - range[0] + 1;
         }
 
-        for (const num of arr) {
+        for (const num of chars) {
           // 当区间未遍历完并且当前数字在当前区间内
           while (
-            intervalIndex < intervals.length &&
-            num > intervals[intervalIndex].slice(-1)
+            charsetIndex < charset.length &&
+            num > charset[charsetIndex].slice(-1)
           ) {
-            intervalIndex++;
+            charsetIndex++;
           }
           // 检查当前数字是否在当前区间内
           if (
-            intervalIndex < intervals.length &&
-            num >= intervals[intervalIndex][0] &&
-            num <= intervals[intervalIndex].slice(-1)
+            charsetIndex < charset.length &&
+            num >= charset[charsetIndex][0] &&
+            num <= charset[charsetIndex].slice(-1)
           ) {
-            coveredCount++;
+            covered++;
           }
         }
 
-        return [coveredCount, intervalsLength];
+        return [covered, charsetLength];
       }
 
       function fontLoaded(resp) {
@@ -145,40 +145,63 @@
         return fetch(file)
           .then((response) => response.json())
           .then((data) => {
-            result["support"][data.id] = {};
+            result["support"][data.id] = {
+              name: data.name,
+              autonym: data.autonym,
+              exemplar: {},
+            };
 
-            const categories = [
-              "base",
-              "auxiliary",
-              "strict",
-              "numerals",
-              "punctuation",
-            ];
+            const categories = ["base", "auxiliary", "numerals", "punctuation"];
 
-            let allCoverage = [0, 0];
+            let exemplarCovered = 0;
+            let exemplarCharset = 0;
             categories.forEach((category) => {
               if (data.exemplar_chars[category]) {
-                const coverage = calculateCoverage(
+                const [covered, charset] = calculateCoverage(
                   data.exemplar_chars[category],
                   uncd
                 );
 
-                result["support"][data.id][category] = [
-                  coverage[0],
-                  coverage[1],
+                result["support"][data.id]["exemplar"][category] = [
+                  covered,
+                  charset,
                 ];
 
-                allCoverage[0] += coverage[0];
-                allCoverage[1] += coverage[1];
+                exemplarCovered += covered;
+                exemplarCharset += charset;
               }
             });
 
-            result["support"][data.id]["all"] = allCoverage;
+            result["support"][data.id]["exemplar"]["covered"] = exemplarCovered;
+            result["support"][data.id]["exemplar"]["charset"] = exemplarCharset;
+            result["support"][data.id]["exemplar"]["coverage"] = (
+              (100 * exemplarCovered) /
+              exemplarCharset
+            ).toFixed(2);
+
             document.getElementById("report").innerHTML += `<br/>${
               data.autonym
-            } - ${((100 * allCoverage[0]) / allCoverage[1]).toFixed(2)} - ${
-              allCoverage[0]
-            } / ${allCoverage[1]} `;
+            } - ${((100 * exemplarCovered) / exemplarCharset).toFixed(
+              2
+            )} - ${exemplarCovered} / ${exemplarCharset} `;
+
+            // 处理附加标准
+            if (data.standard) {
+              result["support"][data.id]["standard"] = {};
+              Object.keys(data.standard).forEach((key) => {
+                const [covered, charset] = calculateCoverage(
+                  data.standard[key]["chars"],
+                  uncd
+                );
+                result["support"][data.id]["standard"][key] = {
+                  name: data.standard[key]["name"],
+                  autonym: data.standard[key]["autonym"],
+                  covered: covered,
+                  charset: charset,
+                  coverage: ((100 * covered) / charset).toFixed(2),
+                };
+              });
+            }
           })
           .catch((error) => console.error(`Error processing ${file}:`, error));
       }

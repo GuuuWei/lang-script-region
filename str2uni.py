@@ -2,17 +2,22 @@
 import sys
 import pandas as pd
 
-data = pd.read_csv('j7000-uni.txt', sep='\s+', header=None)
+data = pd.read_csv('./standard/GBZ40637-2021-uni.txt', sep='\s+', header=None)
 
-data.columns = ['Unicode'] 
-# 排序
-# data转换为list数组
+data.columns = ['Unicode','g'] 
+
+# data Unicode 转换为list数组
 cache_list = data.values.tolist()
-# print(cache_list)
+
+print(cache_list)
 # 合并相邻的数字为区间
 result = []
+# start end 读取作为数字类型
+
 start = cache_list[0][0]
 end = cache_list[0][0]
+
+
 for i in range(1, len(cache_list)):
     if cache_list[i][0] - cache_list[i - 1][0] == 1:
         end = cache_list[i][0]
@@ -44,9 +49,9 @@ with open('uni.txt', 'w') as f:
 # data = data.reset_index(drop=True)
 
 
-# # print(data)
-# # # 保存data 到文件
-# data.to_csv('j7000-uni.txt',
+# print(data)
+# # 保存data 到文件
+# data.to_csv('GBZ40637-2021-uni.txt',
 #             sep=' ', header=None, index=None)
 
 

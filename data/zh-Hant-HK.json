@@ -2,6 +2,7 @@
   "id": "zh-Hant-HK",
   "language": "zh",
   "script": "Hant",
+  "name": "Chinese (Traditional, Hong Kong)",
   "autonym": "香港繁體",
   "exemplar_chars": {
     "base": [

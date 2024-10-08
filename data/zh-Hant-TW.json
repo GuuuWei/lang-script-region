@@ -2,6 +2,7 @@
   "id": "zh-Hant-TW",
   "language": "zh",
   "script": "Hant",
+  "name": "Chinese (Traditional, Taiwan)",
   "autonym": "臺灣正體",
   "exemplar_chars": {
     "base": [
