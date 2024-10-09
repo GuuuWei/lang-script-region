@@ -223,6 +223,7 @@
               autonym: data.autonym,
               exemplar: {},
             };
+            // TODO Arab 处理
 
             var mergedCharsets = [];
             const categories = [
@@ -243,7 +244,7 @@
                   covered,
                   charset,
                 ];
-                // 结束
+                // 可选结束
 
                 mergedCharsets = mergedCharsets.concat(
                   data.exemplar_chars[category]
