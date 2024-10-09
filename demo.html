@@ -18,6 +18,8 @@
         features: {},
         support: {},
       };
+      // 测算性能
+      var start;
 
       async function load(path) {
         try {
@@ -31,9 +33,9 @@
         }
       }
 
-
       function go() {
-        var src = "NotoSansSC-VF.ttf";
+        start = new Date().getTime();
+        var src = "InterVariable.ttf";
         load(src).then(fontLoaded);
 
         var node = document.body;
@@ -49,6 +51,7 @@
 
       function onDrop(e) {
         cancel(e);
+        start = new Date().getTime();
         var r = new FileReader();
         r.onload = function (e) {
           fontLoaded(e.target.result);
@@ -88,13 +91,10 @@
       }
 
       function fontLoaded(resp) {
-        const start = new Date().getTime();
         font = Typr.parse(resp)[0];
         console.log(font);
         document.title = font.name.fullName;
-        document.getElementById(
-          "report"
-        ).innerHTML = `${font.name.fullName}</br>`;
+        document.getElementById("report").innerHTML = "";
 
         result["info"]["fullName"] = font.name.fullName;
         result["info"]["fontFamily"] = font.name.fontFamily;
@@ -115,7 +115,7 @@
           let gid = Typr.U.codeToGlyph(font, i);
           if (gid === 0) continue;
           // 检测是否存在空字形占位置，性能很差，特别是otf格式，暂时不开启
-          // if (Typr.U.glyphToPath(font, gid).cmds.length === 0) continue;
+          if (Typr.U.glyphToPath(font, gid).cmds.length === 0) continue;
           uncd.add(i);
           j++;
         }
@@ -125,10 +125,6 @@
         processJsonFiles();
 
         drawWord();
-        console.log(result);
-
-        const end = new Date().getTime();
-        console.log(`Processing time:`, `${end - start}ms`);
 
         // RTL 语言处理
         // Typr.U.initHB('./src/hb.wasm', function() {
@@ -147,6 +143,58 @@
         // });
       }
 
+      function jsonToHtml(json) {
+        // 基本信息
+        var html = `<h2>${json["info"]["fullName"]}</h2>`;
+        html += `<p>字体家族：${json["info"]["fontFamily"]}</p>`;
+        html += `<p>版本：${json["info"]["version"]}</p>`;
+        html += `<p>制造商：${json["info"]["manufacturer"]}</p>`;
+        html += `<p>设计师：${json["info"]["designer"]}</p>`;
+        html += `<p>版权：${json["copyright"]["copyright"]}</p>`;
+        html += `<p>许可证：${json["copyright"]["licence"]}</p>`;
+        html += `<p>许可证链接：<a href="${json["copyright"]["URL"]}">${json["copyright"]["URL"]}</a></p>`;
+        html += `<p>字形数：${json["info"]["glyphs"]}</p>`;
+        html += `<p>字符数：${json["info"]["characters"]}</p>`;
+        // 支持信息
+        html += `<p>语言支持</p>`;
+        json["support"] = Object.keys(json["support"])
+          .sort()
+          .reduce((obj, key) => {
+            obj[key] = json["support"][key];
+            return obj;
+          }, {});
+        html += `<table><thead><tr><th>id</th><th>Name</th><th>名称</th><th>覆盖率</th><th>已覆盖</th><th>总数</th></tr></thead><tbody>`;
+        Object.keys(json["support"]).forEach((key) => {
+          const support = json["support"][key];
+          const coverage = (
+            (100 * support.exemplar.all[0]) /
+            support.exemplar.all[1]
+          ).toFixed(2);
+          // 处理地区语言支持
+          if (key.match(/-[A-Z]{2}$/)) {
+            html += `<tr><td>${key}</td><td>-- ${support.name}</td><td>-- ${support.autonym}</td><td>${coverage}%</td><td>${support.exemplar.all[0]}</td><td>${support.exemplar.all[1]}</td></tr>`;
+          } else {
+            html += `<tr><td>${key}</td><td>${support.name}</td><td>${support.autonym}</td><td>${coverage}%</td><td>${support.exemplar.all[0]}</td><td>${support.exemplar.all[1]}</td></tr>`;
+          }
+          if (support.standard) {
+            Object.keys(support.standard).forEach((key) => {
+              const standard = support.standard[key];
+              const coverage = (
+                (100 * standard.all[0]) /
+                standard.all[1]
+              ).toFixed(2);
+              html += `<tr><td></td><td>-- ${standard.name}</td><td>-- ${standard.autonym}</td><td>${coverage}%</td><td>${standard.all[0]}</td><td>${standard.all[1]}</td></tr>`;
+            });
+          }
+        });
+        html += `</tbody></table>`;
+        document.getElementById("report").innerHTML = html;
+        console.log(result);
+
+        const end = new Date().getTime();
+        console.log(`Processing time:`, `${end - start}ms`);
+      }
+
       function processJsonFiles() {
         const jsonFolder = "./data/";
 
@@ -159,7 +207,9 @@
               .filter((a) => a.href.endsWith(".json"))
               .map((a) => a.href);
 
-            return Promise.all(fileLinks.map((file) => processJsonFile(file)));
+            return Promise.all(
+              fileLinks.map((file) => processJsonFile(file))
+            ).then(() => jsonToHtml(result));
           })
           .catch((error) => console.error("Error listing JSON files:", error));
       }
@@ -174,6 +224,7 @@
               exemplar: {},
             };
 
+            var mergedCharsets = [];
             const categories = [
               "base",
               "auxiliary",
@@ -181,38 +232,29 @@
               "numerals",
               "punctuation",
             ];
-
-            let exemplarCovered = 0;
-            let exemplarCharset = 0;
             categories.forEach((category) => {
               if (data.exemplar_chars[category]) {
+                // 处理各个类别的字符集 可选
                 const [covered, charset] = calculateCoverage(
                   data.exemplar_chars[category],
                   uncd
                 );
-
                 result["support"][data.id]["exemplar"][category] = [
                   covered,
                   charset,
                 ];
+                // 结束
 
-                exemplarCovered += covered;
-                exemplarCharset += charset;
+                mergedCharsets = mergedCharsets.concat(
+                  data.exemplar_chars[category]
+                );
               }
             });
-
-            result["support"][data.id]["exemplar"]["covered"] = exemplarCovered;
-            result["support"][data.id]["exemplar"]["charset"] = exemplarCharset;
-            result["support"][data.id]["exemplar"]["coverage"] = (
-              (100 * exemplarCovered) /
-              exemplarCharset
-            ).toFixed(2);
-
-            document.getElementById("report").innerHTML += `<br/>${
-              data.autonym
-            } - ${((100 * exemplarCovered) / exemplarCharset).toFixed(
-              2
-            )} - ${exemplarCovered} / ${exemplarCharset} `;
+            // 处理总体覆盖率
+            result["support"][data.id]["exemplar"]["all"] = calculateCoverage(
+              convertCharset(mergedCharsets),
+              uncd
+            );
 
             // 处理附加标准
             if (data.standard) {
@@ -225,14 +267,53 @@
                 result["support"][data.id]["standard"][key] = {
                   name: data.standard[key]["name"],
                   autonym: data.standard[key]["autonym"],
-                  covered: covered,
-                  charset: charset,
-                  coverage: ((100 * covered) / charset).toFixed(2),
+                  all: [covered, charset],
                 };
               });
             }
           })
           .catch((error) => console.error(`Error processing ${file}:`, error));
+      }
+
+      // 将多个字符集合并为一个，去重排序
+      function convertCharset(charset) {
+        var all_chars = new Set();
+        charset.forEach((item) => {
+          if (item.length === 1) {
+            all_chars.add(item[0]);
+          } else {
+            for (let i = item[0]; i <= item[1]; i++) {
+              all_chars.add(i);
+            }
+          }
+        });
+        // 按数字排序
+        all_chars = Array.from(all_chars).sort((a, b) => a - b);
+
+        let r = [];
+        let s = all_chars[0];
+        let e = all_chars[0];
+
+        for (let i = 1; i < all_chars.length; i++) {
+          j = all_chars[i];
+          if (j - 1 === e) {
+            e = j;
+          } else {
+            if (s === e) {
+              r.push([s]);
+            } else {
+              r.push([s, e]);
+            }
+            s = j;
+            e = j;
+          }
+        }
+        if (s === e) {
+          r.push([s]);
+        } else {
+          r.push([s, e]);
+        }
+        return r;
       }
 
       function drawWord(e) {
@@ -284,13 +365,28 @@
         padding: 0;
         line-height: 1.6em;
         color: rgb(51, 51, 51);
+        min-height: 100vh;
       }
       .main {
         margin: 0 auto;
-        max-width: 50em;
+        max-width: 64em;
+        min-height: 96vh;
 
         padding: 0.5em 2em;
         background-color: #ffffff;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+      th {
+        background-color: #f2f2f2;
       }
     </style>
   </head>
