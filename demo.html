@@ -5,13 +5,12 @@
     <title>...</title>
     <script type="text/javascript" src="./lib/Typr.js"></script>
     <script type="text/javascript" src="./lib/Typr.U.js"></script>
-    <script type="module" src="./lib/lib-font.browser.js"></script>
-    <script type="text/javascript" src="./lib/inflate.js"></script>
-    <script type="text/javascript" src="./lib/unbrotli.js"></script>
+    <!-- Todo woff/woff2 解压缩 -->
+    <!-- <script type="text/javascript" src="./lib/inflate.js"></script> -->
+    <!-- <script type="text/javascript" src="./lib/unbrotli.js"></script> -->
     <script type="text/javascript">
       var font;
       var uncd = null;
-      // var uncd2 = null;
       var result = {
         info: {},
         copyright: {},
@@ -32,60 +31,10 @@
         }
       }
 
-      // function checkFont(evt) {
-      //   const start = new Date().getTime();
-
-      //   const f = evt.detail.font;
-      //   console.log(f);
-      //   // document.title = f.opentype.tables.name.fullName;
-      //   // document.getElementById(
-      //   //   "report"
-      //   // ).innerHTML = `${font.name.fullName}</br>`;
-
-      //   // result["info"]["fullName"] = font.name.fullName;
-      //   // result["info"]["fontFamily"] = font.name.fontFamily;
-      //   // result["info"]["version"] = font.name.version;
-      //   // result["info"]["manufacturer"] = font.name.manufacturer;
-      //   // result["info"]["designer"] = font.name.designer;
-      //   // result["copyright"]["copyright"] = font.name.copyright;
-      //   // result["copyright"]["licence"] = font.name.licence;
-      //   // result["copyright"]["URL"] = font.name.licenceURL;
-
-      //   var glyphCounts = f.opentype.tables.maxp.numGlyphs;
-      //   // result["info"]["glyphs"] = glyphCounts;
-
-      //   uncd2 = new Set();
-      //   // // 遍历所有 Unicode 码点，直到找到所有字形
-      //   // // TODO 遍历次数太多，效率太低
-      //   for (let i = 32, j = 0; i <= 0x10ffff && j < glyphCounts; i++) {
-      //     // TODO lib-font 不支持65535以上的unicode码点
-      //     let gid = f.getGlyphId(String.fromCodePoint(i));
-      //     if (gid === 0) continue;
-      //     // 检测是否存在空字形占位置，性能很差，特别是otf格式，暂时不开启
-      //     // if (Typr.U.glyphToPath(font, gid).cmds.length === 0) continue;
-      //     uncd2.add(i);
-      //     j++;
-      //   }
-
-      //   // result["info"]["characters"] = uncd.size;
-
-      //   processJsonFiles();
-
-      //   // drawWord();
-      //   console.log(result);
-
-      //   const end = new Date().getTime();
-      //   console.log(`Processing time:`, `${end - start}ms`);
-      // }
 
       function go() {
         var src = "NotoSansSC-VF.ttf";
         load(src).then(fontLoaded);
-
-        // const f = new Font(`Lib-font-test`);
-        // f.onerror = (evt) => console.error(evt);
-        // f.onload = (evt) => checkFont(evt);
-        // f.src = src;
 
         var node = document.body;
         node.addEventListener("drop", onDrop, false);
