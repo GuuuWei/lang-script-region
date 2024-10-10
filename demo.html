@@ -170,11 +170,17 @@
             (100 * support.exemplar.all[0]) /
             support.exemplar.all[1]
           ).toFixed(2);
+          // 如果覆盖率低于95%，标记为红色
+          if (coverage < 95) {
+            html += `<tr style="color: #fed0cc;">`;
+          } else {
+            html += `<tr>`;
+          }
           // 处理地区语言支持
           if (key.match(/-[A-Z]{2}$/)) {
-            html += `<tr><td>${key}</td><td>-- ${support.name}</td><td>-- ${support.autonym}</td><td>${coverage}%</td><td>${support.exemplar.all[0]}</td><td>${support.exemplar.all[1]}</td></tr>`;
+            html += `<td>${key}</td><td>-- ${support.name}</td><td>-- ${support.autonym}</td><td>${coverage}%</td><td>${support.exemplar.all[0]}</td><td>${support.exemplar.all[1]}</td></tr>`;
           } else {
-            html += `<tr><td>${key}</td><td>${support.name}</td><td>${support.autonym}</td><td>${coverage}%</td><td>${support.exemplar.all[0]}</td><td>${support.exemplar.all[1]}</td></tr>`;
+            html += `<td>${key}</td><td>${support.name}</td><td>${support.autonym}</td><td>${coverage}%</td><td>${support.exemplar.all[0]}</td><td>${support.exemplar.all[1]}</td></tr>`;
           }
           if (support.standard) {
             Object.keys(support.standard).forEach((key) => {
@@ -183,7 +189,12 @@
                 (100 * standard.all[0]) /
                 standard.all[1]
               ).toFixed(2);
-              html += `<tr><td></td><td>-- ${standard.name}</td><td>-- ${standard.autonym}</td><td>${coverage}%</td><td>${standard.all[0]}</td><td>${standard.all[1]}</td></tr>`;
+              if (coverage < 95) {
+                html += `<tr style="color: #fed0cc;">`;
+              } else {
+                html += `<tr>`;
+              }
+              html += `<td></td><td>-- ${standard.name}</td><td>-- ${standard.autonym}</td><td>${coverage}%</td><td>${standard.all[0]}</td><td>${standard.all[1]}</td></tr>`;
             });
           }
         });
@@ -370,7 +381,7 @@
       }
       .main {
         margin: 0 auto;
-        max-width: 64em;
+        max-width: 80em;
         min-height: 96vh;
 
         padding: 0.5em 2em;
