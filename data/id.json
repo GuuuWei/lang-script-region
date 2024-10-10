@@ -1,0 +1,35 @@
+{
+  "id": "id",
+  "language": "id",
+  "script": "Latn",
+  "name": "Indonesian",
+  "autonym": "Indonesia",
+  "region": ["ID", "NL"],
+  "exemplar_chars": {
+    "base": [
+      [65, 90],
+      [97, 122]
+    ],
+    "auxiliary": [[197], [229]],
+    "marks": [[769], [774], [776]],
+    "numerals": [[37], [43, 46], [48, 57]],
+    "punctuation": [
+      [33, 35],
+      [38, 42],
+      [44, 47],
+      [58, 59],
+      [63, 64],
+      [91],
+      [93],
+      [8211, 8212],
+      [8216, 8217],
+      [8220, 8221],
+      [8230]
+    ]
+  },
+  "sample_text": {
+    "phrase": "Menimbang bahwa",
+    "sentence": "Menimbang bahwa mengabaikan dan memandang rendah hak-hak asasi",
+    "paragraph": "Menimbang bahwa pengakuan atas martabat alamiah dan hak-hak yang sama dan mutlak dari semua anggota keluarga manusia adalah dasar kemerdekaan, keadilan dan perdamaian di dunia,\nMenimbang bahwa hak-hak asasi manusia perlu dilindungi oleh peraturan hukum supaya orang tidak akan terpaksa memilih pemberontakan sebagai usaha terakhir guna menentang kelaliman dan penindasan,"
+  }
+}

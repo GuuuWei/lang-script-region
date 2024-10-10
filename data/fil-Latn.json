@@ -1,0 +1,43 @@
+{
+  "id": "fil_Latn",
+  "language": "fil",
+  "script": "Latn",
+  "name": "Filipino",
+  "autonym": "Filipino",
+  "region": ["PH", "US"],
+  "exemplar_chars": {
+    "base": [[65, 90], [97, 122], [209], [241]],
+    "auxiliary": [
+      [192, 194],
+      [200, 202],
+      [204, 206],
+      [210, 212],
+      [217, 219],
+      [224, 226],
+      [232, 234],
+      [236, 238],
+      [242, 244],
+      [249, 251]
+    ],
+    "marks": [[771]],
+    "numerals": [[37], [43, 46], [48, 57]],
+    "punctuation": [
+      [33, 35],
+      [38, 42],
+      [44, 47],
+      [58, 59],
+      [63],
+      [91],
+      [93],
+      [8211, 8212],
+      [8216, 8217],
+      [8220, 8221],
+      [8230]
+    ]
+  },
+  "sample_text": {
+    "phrase": "Ang lahat",
+    "sentence": "Ang lahat ng tao'y isinilang na malaya at pantay-pantay sa karangalan",
+    "paragraph": "Ang lahat ng tao'y isinilang na malaya at pantay-pantay sa karangalan at mga karapatan. Sila'y pinagkalooban ng katwiran at budhi at dapat magpalagayan ang isa't isa sa diwa ng pagkakapatiran. Ang lahat ng tao'y isinilang na malaya at pantay-pantay sa karangalan at mga karapatan. Sila'y pinagkalooban ng katwiran at budhi at dapat magpalagayan ang isa't isa sa diwa ng pagkakapatiran."
+  }
+}
