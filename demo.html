@@ -262,7 +262,7 @@
               result["support"][data.id]["standard"] = {};
               Object.keys(data.standard).forEach((key) => {
                 const [covered, charset] = calculateCoverage(
-                  data.standard[key]["chars"],
+                  data.standard[key]["base"],
                   uncd
                 );
                 result["support"][data.id]["standard"][key] = {
