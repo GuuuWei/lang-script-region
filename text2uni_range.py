@@ -1,5 +1,5 @@
 import re
-strlist = "- – — , ; : ! ? . … \' ‘ ’ \" “ ” ( ) [ ] @ * / & #"
+strlist = "132"
 
 
 ss = [x[0] or x[1] for x in re.findall(r"\{([^}]+)\}|(\S+)", strlist)]
@@ -42,5 +42,5 @@ print(result)
 
 
 # 存为txt文件
-with open('uni.txt', 'w') as f:
+with open('uni_range.txt', 'w') as f:
     f.write(str(result))

@@ -1,8 +1,2 @@
 {
-  "dependencies": {
-    "lib-font": "^2.4.3"
-  },
-  "devDependencies": {
-    "@types/node": "^22.7.3"
-  }
 }

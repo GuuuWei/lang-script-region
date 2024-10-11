@@ -114,7 +114,7 @@
         for (let i = 32, j = 0; i <= 0x10ffff && j < glyphCounts; i++) {
           let gid = Typr.U.codeToGlyph(font, i);
           if (gid === 0) continue;
-          // 检测是否存在空字形占位置，性能很差，特别是otf格式，暂时不开启
+          // 检测是否存在空字形占位置，性能很差，特别是otf格式
           if (Typr.U.glyphToPath(font, gid).cmds.length === 0) continue;
           uncd.add(i);
           j++;
@@ -176,25 +176,20 @@
           } else {
             html += `<tr>`;
           }
-          // 处理地区语言支持
-          if (key.match(/-[A-Z]{2}$/)) {
-            html += `<td>${key}</td><td>-- ${support.name}</td><td>-- ${support.autonym}</td><td>${coverage}%</td><td>${support.exemplar.all[0]}</td><td>${support.exemplar.all[1]}</td></tr>`;
-          } else {
-            html += `<td>${key}</td><td>${support.name}</td><td>${support.autonym}</td><td>${coverage}%</td><td>${support.exemplar.all[0]}</td><td>${support.exemplar.all[1]}</td></tr>`;
-          }
-          if (support.standard) {
-            Object.keys(support.standard).forEach((key) => {
-              const standard = support.standard[key];
-              const coverage = (
-                (100 * standard.all[0]) /
-                standard.all[1]
-              ).toFixed(2);
+          html += `<td>${key}</td><td>${support.name}</td><td>${support.autonym}</td><td>${coverage}%</td><td>${support.exemplar.all[0]}</td><td>${support.exemplar.all[1]}</td></tr>`;
+
+          if (support.extend) {
+            Object.keys(support.extend).forEach((key) => {
+              const extend = support.extend[key];
+              const coverage = ((100 * extend.all[0]) / extend.all[1]).toFixed(
+                2
+              );
               if (coverage < 95) {
                 html += `<tr style="color: #fed0cc;">`;
               } else {
                 html += `<tr>`;
               }
-              html += `<td></td><td>-- ${standard.name}</td><td>-- ${standard.autonym}</td><td>${coverage}%</td><td>${standard.all[0]}</td><td>${standard.all[1]}</td></tr>`;
+              html += `<td></td><td>${extend.name}</td><td>${extend.autonym}</td><td>${coverage}%</td><td>${extend.all[0]}</td><td>${extend.all[1]}</td></tr>`;
             });
           }
         });
@@ -268,17 +263,17 @@
               uncd
             );
 
-            // 处理附加标准
-            if (data.standard) {
-              result["support"][data.id]["standard"] = {};
-              Object.keys(data.standard).forEach((key) => {
+            // 处理扩展标准
+            if (data.extend) {
+              result["support"][data.id]["extend"] = {};
+              Object.keys(data.extend).forEach((key) => {
                 const [covered, charset] = calculateCoverage(
-                  data.standard[key]["base"],
+                  data.extend[key]["base"],
                   uncd
                 );
-                result["support"][data.id]["standard"][key] = {
-                  name: data.standard[key]["name"],
-                  autonym: data.standard[key]["autonym"],
+                result["support"][data.id]["extend"][key] = {
+                  name: data.extend[key]["name"],
+                  autonym: data.extend[key]["autonym"],
                   all: [covered, charset],
                 };
               });

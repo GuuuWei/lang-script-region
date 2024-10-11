@@ -4029,16 +4029,11 @@
       [65373]
     ]
   },
-  "sample_text": {
-    "phrase": "早发白帝城",
-    "sentence": "朝辞白帝彩云间，千里江陵一日还。两岸猿声啼不住，轻舟已过万重山。",
-    "paragraph": "天地玄黄，宇宙洪荒。日月盈昃，辰宿列张。寒来暑往，秋收冬藏。闰余成岁，律吕调阳。云腾致雨，露结为霜。金生丽水，玉出昆冈。剑号巨阙，珠称夜光。果珍李柰，菜重芥姜。海咸河淡，鳞潜羽翔。龙师火帝，鸟官人皇。始制文字，乃服衣裳。推位让国，有虞陶唐。吊民伐罪，周发殷汤。坐朝问道，垂拱平章。爱育黎首，臣伏戎羌。遐迩一体，率宾归王。鸣凤在竹，白驹食场。化被草木，赖及万方。盖此身发，四大五常。恭惟鞠养，岂敢毁伤。女慕贞洁，男效才良。知过必改，得能莫忘。罔谈彼短，靡恃己长。信使可覆，器欲难量。墨悲丝染，诗赞羔羊。"
-  },
-  "standard": {
+  "extend": {
     "GB18030-2022-level2": {
-      "name": "The GB 18030-2022 Standard Level 2",
+      "name": "[CN] The GB 18030-2022 Standard - Level 2",
+      "full_name": "[CN - The GB 18030-2022 Standard] Information technology—Chinese coded character set - Level 2",
       "autonym": "信息技术 中文编码字符集 级别2",
-      "note": "仅包含汉字、汉字部首部分，不包含其他文种、图形符号等。Not including other scripts, symbols, etc.",
       "base": [
         [11905],
         [11908],
@@ -4238,9 +4233,9 @@
       ]
     },
     "GB18030-2022-amd1-level3": {
-      "name": "The GB 18030-2022 Standard with Amendment 1 Level 3",
+      "name": "[CN] The GB 18030-2022 Standard with Amendment 1 - Level 3",
+      "full_name": "[CN - The GB 18030-2022 Standard with Amendment 1] Information technology—Chinese coded character set - Level 3",
       "autonym": "信息技术 中文编码字符集（含1号修改单） 级别3",
-      "note": "仅包含汉字、汉字部首部分，不包含其他文种、图形符号等。Not including other scripts, symbols, etc.",
       "base": [
         [11905],
         [11908],
@@ -4274,5 +4269,10 @@
         [201552, 205743]
       ]
     }
+  },
+  "sample_text": {
+    "phrase": "早发白帝城",
+    "sentence": "朝辞白帝彩云间，千里江陵一日还。两岸猿声啼不住，轻舟已过万重山。",
+    "paragraph": "天地玄黄，宇宙洪荒。日月盈昃，辰宿列张。寒来暑往，秋收冬藏。闰余成岁，律吕调阳。云腾致雨，露结为霜。金生丽水，玉出昆冈。剑号巨阙，珠称夜光。果珍李柰，菜重芥姜。海咸河淡，鳞潜羽翔。龙师火帝，鸟官人皇。始制文字，乃服衣裳。推位让国，有虞陶唐。吊民伐罪，周发殷汤。坐朝问道，垂拱平章。爱育黎首，臣伏戎羌。遐迩一体，率宾归王。鸣凤在竹，白驹食场。化被草木，赖及万方。盖此身发，四大五常。恭惟鞠养，岂敢毁伤。女慕贞洁，男效才良。知过必改，得能莫忘。罔谈彼短，靡恃己长。信使可覆，器欲难量。墨悲丝染，诗赞羔羊。"
   }
 }
