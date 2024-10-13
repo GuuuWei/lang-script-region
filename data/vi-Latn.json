@@ -1,0 +1,53 @@
+{
+  "id": "vi-Latn",
+  "language": "vi",
+  "script": "Latn",
+  "name": "Vietnamese",
+  "autonym": "Tiếng Việt",
+  "region": ["VN", "CN", "US"],
+  "exemplar_chars": {
+    "base": [
+      [65, 90],
+      [97, 122],
+      [192, 195],
+      [200, 202],
+      [204, 205],
+      [210, 213],
+      [217, 218],
+      [221],
+      [224, 227],
+      [232, 234],
+      [236, 237],
+      [242, 245],
+      [249, 250],
+      [253],
+      [258, 259],
+      [272, 273],
+      [296, 297],
+      [360, 361],
+      [416, 417],
+      [431, 432],
+      [7840, 7929]
+    ],
+    "marks": [[768, 771], [774], [777], [795], [803]],
+    "numerals": [[37], [43, 46], [48, 57]],
+    "punctuation": [
+      [33, 35],
+      [38, 42],
+      [44, 47],
+      [58, 59],
+      [63, 64],
+      [91],
+      [93],
+      [8211, 8212],
+      [8216, 8217],
+      [8220, 8221],
+      [8230]
+    ]
+  },
+  "sample_text": {
+    "phrase": "Nhân quyền",
+    "sentence": "Sự xâm phạm và coi thường nhân quyền đã dẫn đến những hành động",
+    "paragraph": "Không ai bị bắt, giam giữ hay đày đi nơi khác một cách độc đoán. Mọi người, với tư cách bình đẳng về mọi phương diện, đều có quyền được một toà án độc lập và vô tư phân xử công bằng và công khai để xác định quyền, nghĩa vụ hoặc bất cứ một lời buộc tội nào đối với người đó. Mọi người đều có quyền nghỉ ngơi và giải trí, kể cả quyền được hạn chế hợp lý về số giờ làm việc và hưởng những ngày nghỉ định kỳ được trả lương."
+  }
+}
