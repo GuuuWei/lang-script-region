@@ -15,13 +15,14 @@
         info: {},
         copyright: {},
         variable: {},
-        features: {},
+        feature: {},
         support: {},
       };
       // 测算性能
       var start;
 
-      async function load(path) {
+      async function load() {
+        var path = "InterVariable.ttf";
         try {
           const response = await fetch(path);
           if (!response.ok) {
@@ -33,10 +34,35 @@
         }
       }
 
+      async function logFontData(path) {
+        try {
+          const permission = await navigator.permissions.query({
+            name: "local-fonts",
+          });
+          if (permission.state === "granted") {
+            const availableFonts = await window.queryLocalFonts();
+            // 随机一个字体
+            r = Math.floor(Math.random() * availableFonts.length);
+            const sfnt = await availableFonts[r].blob();
+            return await sfnt.arrayBuffer();
+          } else {
+            return load();
+          }
+        } catch (err) {
+          console.error(err.name, err.message);
+        }
+      }
       function go() {
         start = new Date().getTime();
-        var src = "InterVariable.ttf";
-        load(src).then(fontLoaded);
+
+        if (
+          "queryLocalFonts" in window &&
+          document.visibilityState === "visible"
+        ) {
+          logFontData().then(fontLoaded);
+        } else {
+          load().then(fontLoaded);
+        }
 
         var node = document.body;
         node.addEventListener("drop", onDrop, false);
